@@ -27,7 +27,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
         List<GrantedAuthority> roles = new ArrayList<>();
         roles.add(new SimpleGrantedAuthority(account.getRole()));
-        AccountContext accountContext = new AccountContext(account,roles);
-        return accountContext;
+        return new AccountContext(account,roles);
     }
 }
