@@ -34,6 +34,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     }
 
     @Override
+    //현재 form 인증 또는 remember me 인증 같은 그러한 조건이 있는지 기준이 있는지 검사한다./
     public boolean supports(Class<?> authentication) {
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
     }
