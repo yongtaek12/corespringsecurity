@@ -1,5 +1,7 @@
 package io.security.corespringsecurity.security.configs;
 
+import io.security.corespringsecurity.security.common.FormAuthenticationDetailsSource;
+import io.security.corespringsecurity.security.handler.CustomAccessDeniedHandler;
 import io.security.corespringsecurity.security.provider.CustomAuthenticationProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.web.filter.CharacterEncodingFilter;
@@ -25,10 +28,10 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private AuthenticationDetailsSource authenticationDetailsSource;
+    public FormAuthenticationDetailsSource authenticationDetailsSource;
 
     @Autowired
-    private AuthenticationSuccessHandler customAuthenticationSuccessHandler;
+    public AuthenticationSuccessHandler customAuthenticationSuccessHandler;
 
 
     @Autowired
@@ -50,6 +53,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler(){
+        CustomAccessDeniedHandler accessDeniedHandler = new CustomAccessDeniedHandler();
+        accessDeniedHandler.setErrorPage("/denied");
+        return accessDeniedHandler;
+    }
     @Override
     public void configure(WebSecurity web) throws Exception {
         //정적파일들은 보안필터를 거치지 않고 통과되게 한다.
@@ -58,7 +67,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
-        CharacterEncodingFilter filter = new CharacterEncodingFilter();
+        //CharacterEncodingFilter filter = new CharacterEncodingFilter();
         http
                 .authorizeRequests()
                 //로그인 url 이 파라미터 값으로 변경되어서 아래처럼 추가해주어야 인식한다.  /login*
@@ -67,7 +76,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/messages").hasRole("MANAGER")
                 .antMatchers("/config").hasRole("ADMIN")
                 .anyRequest().authenticated()
-
         .and()
                 .formLogin()
                 .loginPage("/login")
@@ -76,7 +84,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .defaultSuccessUrl("/")
                 .successHandler(customAuthenticationSuccessHandler)
                 .failureHandler(customAuthenticationFailureHandler)
-                .permitAll();
+                .permitAll()
+        .and()
+                .exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler());
 
     }
 }
